@@ -1,0 +1,43 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      volumes:
+        - name: pipelines
+          configMap:
+            name: nginx-logstash-pipelines
+            defaultMode: 420
+      containers:
+        - name: logstash
+          image: 'docker.elastic.co/logstash/logstash:7.17.21'
+          args:
+            - '--config.reload.automatic'
+          ports:
+            - containerPort: 5044
+              protocol: TCP
+          env:
+            - name: ELASTICSEARCH_HOST
+              value: rd-elasticsearch.cps-system.svc.cluster.local
+            - name: ELASTICSEARCH_PORT
+              value: "9200"
+            - name: XPACK_MONITORING_ENABLED
+              value: 'false'
+            - name: TZ
+              value: Asia/Taipei
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: pipelines
+              mountPath: /usr/share/logstash/pipeline

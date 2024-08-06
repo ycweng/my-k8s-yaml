@@ -1,0 +1,13 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rd-es-config
+data:
+  elasticsearch.yml: |
+    cluster.name: "rd-k8s-singlenode-es"
+    node.name: ${POD_NAME}
+    network.host: 0.0.0.0
+    http.port: 9200
+    transport.tcp.port: 9300
+    discovery.type: single-node

@@ -1,0 +1,40 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-logstash-pipelines
+data:
+  logstash.conf: |
+    input {
+      kafka {
+        bootstrap_servers => "10.110.54.75:9092"
+        topics => ["nginx_log_252"]
+        group_id => "uat_v1"
+        max_poll_records => "50"
+    decorate_events => true 
+    client_id => "${POD_NAME}"
+      }
+    }
+    filter {
+      json {
+      source => "message"
+    }
+      date {
+      match => [ "timestamp", "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'" ]
+      target => "@timestamp"
+    }
+    }
+    output {
+      if "nginx-access" in [tags] {
+        elasticsearch {
+          hosts => ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+          index => "logstash-kafka-nginx-accesslog-%{+YYYY.MM.dd}"
+        }
+      }
+      if "nginx-error" in [tags] {
+        elasticsearch {
+          hosts => ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+          index => "logstash-kafka-nginx-errorlog-%{+YYYY.MM.dd}"
+        }
+      }
+    }

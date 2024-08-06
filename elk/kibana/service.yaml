@@ -1,0 +1,14 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rd-kibana
+spec:
+  ports:
+    - name: rd-kibana
+      protocol: TCP
+      port: 80
+      targetPort: 5601
+  selector:
+    component: rd-kibana
+  type: NodePort

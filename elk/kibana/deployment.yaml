@@ -1,0 +1,31 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rd-kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: rd-kibana
+  template:
+    metadata:
+      labels:
+        component: rd-kibana
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: rd-kibana-config
+            defaultMode: 420
+      containers:
+        - name: elk-kibana
+          image: 'docker.elastic.co/kibana/kibana:7.17.21'
+          ports:
+            - name: rd-kibana
+              containerPort: 5601
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/kibana/config/kibana.yml
+              subPath: kibana.yml

@@ -1,0 +1,18 @@
+- type: log
+  enable: true
+  paths:
+    -  /home/nginx/log/access.log
+  json.keys_under_root: ture
+  json.overwrite_keys: ture
+  tags: ["nginx-access"]
+  ignore_older: '10m'
+  max_bytes: 1048756
+
+- type: log
+  enable: true
+  paths:
+    -  /home/nginx/log/error.log
+  tags: ["nginx-error"]
+  ignore_older: '10m'
+  max_bytes: 1048756
+

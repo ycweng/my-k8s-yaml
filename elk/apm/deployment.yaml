@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rd-apm-server
+  labels:
+    app: rd-apm-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rd-apm-server
+  template:
+    metadata:
+      labels:
+        app: rd-apm-server
+    spec:
+      containers:
+        - name: rd-apm-server
+          image: docker.elastic.co/apm/apm-server:7.17.21
+          env:
+            - name: ELASTICSEARCH_HOST
+              value: rd-elasticsearch.cps-system.svc.cluster.local
+            - name: ELASTICSEARCH_PORT
+              value: "9200"
+            - name: KIBANA_HOST
+              value: rd-kibana.cps-system.svc.cluster.local
+            - name: KIBANA_PORT
+              value: "5601"
+          ports:
+            - containerPort: 8200
+              name: apm-server
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/apm-server/apm-server.yml
+              readOnly: true
+              subPath: apm-server.yml
+      volumes:
+        - name: config
+          configMap:
+            name: rd-apm-server-config

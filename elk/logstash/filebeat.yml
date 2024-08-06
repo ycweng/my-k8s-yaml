@@ -1,0 +1,20 @@
+filebeat.config.inputs:
+  path: ./inputs.d/*.yml
+  reload.enabled: true
+
+filebeat.config.modules:
+  path: ./modules.d/*.yml
+  reload.enabled: true
+
+processors:
+  - add_cloud_metadata:
+
+reload.enabled: true
+reload.period: 60s
+
+output.kafka:
+  hosts: [ "10.110.54.75:9092" ]
+  topic: "nginx_log_252"
+  partition.round_robin:
+    reachable_only: false
+  required_acks: 1

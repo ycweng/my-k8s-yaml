@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rd-apm-server
+  labels:
+    app: rd-apm-server
+spec:
+  ports:
+    - port: 8200
+      name: rd-apm-server
+  selector:
+    app: rd-apm-server

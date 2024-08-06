@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    k8s-app: rd-elasticsearch
+  name: rd-elasticsearch
+spec:
+  serviceName: rd-elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: rd-elasticsearch
+  template:
+    metadata:
+      labels:
+        k8s-app: rd-elasticsearch
+    spec:
+      containers:
+        - name: rd-elasticsearch
+          image: docker.io/library/elasticsearch:7.17.21
+          ports:
+            - containerPort: 9200
+              name: es-http
+              protocol: TCP
+            - containerPort: 9300
+              name: es-transport
+              protocol: TCP
+          env:
+            - name: ES_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          volumeMounts:
+            - name: es-data
+              mountPath: /data/elasticsearch/data
+            - name: rd-es-config
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
+      initContainers:
+        - name: es-cluster-init-1
+          image: alpine:3.6
+          command: ["/sbin/sysctl","-w","vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+        - name: es-cluster-init-2
+          image: alpine:3.6
+          command: ["sh", "-c", "ulimit -n 65536"]
+          securityContext:
+            privileged: true
+        - name: es-cluster-permissions
+          image: alpine:3.6
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+      volumes:
+        - name: es-data
+          persistentVolumeClaim:
+            claimName: pvc-nfs-rd-elk
+        - name: rd-es-config
+          configMap:
+            name: rd-es-config
